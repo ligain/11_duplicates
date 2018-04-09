@@ -1,65 +1,52 @@
 import argparse
 import os
-from itertools import groupby
+from collections import defaultdict
+
+
+def walk_directory(filepath):
+    files_dict = defaultdict(list)
+    for dirpath, dirnames, filenames in os.walk(filepath):
+        for filename in filenames:
+            file_path = os.path.join(dirpath, filename)
+            file_size = os.path.getsize(file_path)
+            filename_index = '{}{}'.format(filename, file_size)
+            files_dict[filename_index].append(file_path)
+    return files_dict
+
+
+def find_file_duplicates(files_dict):
+    duplicates = defaultdict(list)
+    for file, pathes in files_dict.items():
+        if len(pathes) >= 2:
+            duplicates[file] = pathes
+    return duplicates
 
 
 def get_args():
     parser = argparse.ArgumentParser(
-        description='Recursively find duplicate '
-                    'files on specific path'
+        description='Recursively find duplicate files on specific path'
     )
     parser.add_argument(
-        '-p', '--filepath',
+        '-f', '--filepath',
         help='target folder to find duplicates into',
         required=True
     )
     return parser.parse_args()
 
 
-def walk_directory(filepath):
-    for dirpath, dirnames, filenames in os.walk(filepath):
-        for filename in filenames:
-            yield dirpath, filename
-
-
-def calc_file_sizes(filepaths):
-    for filepath in filepaths:
-        dirpath, filename = filepath
-        file_path = os.path.join(dirpath, filename)
-        file_size = os.path.getsize(file_path)
-        yield dirpath, filename, file_size
-
-
-def get_duplicate_files(filepaths_with_sizes):
-    sorted_files = sorted(
-        filepaths_with_sizes,
-        key=lambda file: file[1] + str(file[2])
-    )
-    grouped_files = groupby(
-        sorted_files,
-        key=lambda file: file[1] + str(file[2])
-    )
-    for _, group in grouped_files:
-        current_group = list(group)
-        if len(current_group) >= 2:
-            yield from current_group
-
-
 if __name__ == '__main__':
 
     args = get_args()
 
-    files_in_directory = walk_directory(args.filepath)
+    files = walk_directory(args.filepath)
 
-    files_with_sizes = list(calc_file_sizes(files_in_directory))
+    file_duplicates = find_file_duplicates(files)
 
-    duplicates = list(get_duplicate_files(files_with_sizes))
-
-    if duplicates:
-        print('We have found next duplicates '
-              'in the folder: {folder}'.format(folder=args.filepath))
-        for duplicate in duplicates:
-            print(os.path.join(duplicate[0], duplicate[1]))
+    if file_duplicates:
+        print('We have found next duplicates in the folder: {folder}'
+              .format(folder=args.filepath))
+        for duplicate in file_duplicates.values():
+            print('\n'.join(duplicate))
     else:
-        print('There are no duplicates '
-              'in the folder {folder}'.format(folder=args.filepath))
+        print('There are no duplicates in the folder {folder}'
+              .format(folder=args.filepath))
