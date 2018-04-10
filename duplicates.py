@@ -3,7 +3,7 @@ import os
 from collections import defaultdict
 
 
-def walk_directory(filepath):
+def get_dir_files_recursively(filepath):
     files_dict = defaultdict(list)
     for dirpath, dirnames, filenames in os.walk(filepath):
         for filename in filenames:
@@ -38,9 +38,9 @@ if __name__ == '__main__':
 
     args = get_args()
 
-    files = walk_directory(args.dirpath)
+    dir_files_dict = get_dir_files_recursively(args.dirpath)
 
-    file_duplicates = find_file_duplicates(files)
+    file_duplicates = find_file_duplicates(dir_files_dict)
 
     if file_duplicates:
         print('We have found next duplicates in the folder: {folder}'
