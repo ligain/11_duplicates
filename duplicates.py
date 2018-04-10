@@ -16,9 +16,9 @@ def walk_directory(filepath):
 
 def find_file_duplicates(files_dict):
     duplicates = defaultdict(list)
-    for file, pathes in files_dict.items():
+    for filename_index, pathes in files_dict.items():
         if len(pathes) >= 2:
-            duplicates[file] = pathes
+            duplicates[filename_index] = pathes
     return duplicates
 
 
@@ -27,7 +27,7 @@ def get_args():
         description='Recursively find duplicate files on specific path'
     )
     parser.add_argument(
-        '-f', '--filepath',
+        '-d', '--dirpath',
         help='target folder to find duplicates into',
         required=True
     )
@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
     args = get_args()
 
-    files = walk_directory(args.filepath)
+    files = walk_directory(args.dirpath)
 
     file_duplicates = find_file_duplicates(files)
 
